@@ -1,0 +1,47 @@
+---
+title: "2024_NBA_Data_Scraper_RunFile"
+author: "PratishPatel"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, eval = FALSE)
+pacman::p_load(tidyverse,rvest, httr)
+```
+
+# Get the links of all the NBA teams
+```{r TeamWebsiteScraper, eval=TRUE}
+httr::GET("https://httpbin.org/user-agent",
+          config = add_headers("user-agent" = "Mozilla/5.0"))
+
+raw <-
+  GET(
+    "https://www.espn.com/nba/seasonleaders/_/league/nba/page/1",
+    config = add_headers("user-agent" = "Mozilla/5.0")
+  ) |>
+  read_html() %>%
+  html_table() %>%
+  data.frame()
+
+Colnames <- raw[2,]
+```
+
+```{r}
+raw <-
+  GET(
+    "https://www.espn.com/nba/seasonleaders/_/league/nba/page/2",
+    config = add_headers("user-agent" = "Mozilla/5.0")
+  ) |>
+  read_html() %>%
+  html_table() %>%
+  data.frame()
+
+names(raw) <- Colnames
+
+test <- raw[!grepl("RK|Season", raw$RK),]
+test$position = str_split(test$PLAYER, ",\\s*", simplify = TRUE)[, 2] %>% str_trim()
+test$PLAYER = str_split(test$PLAYER, ",\\s*", simplify = TRUE)[, 1] %>% str_trim()
+Sys.sleep(10)
+```
+
